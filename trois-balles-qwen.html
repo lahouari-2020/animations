@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation de trois balles avec règle de distance minimale</title>
+    <style>
+        /* Style général */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        #container {
+            position: relative;
+            width: 400px;
+            height: 300px;
+            background-color: #ddd;
+            border: 2px solid #333;
+            overflow: hidden; /* Pour masquer les éléments qui sortent du conteneur */
+            margin-bottom: 20px;
+        }
+
+        .ball {
+            position: absolute;
+            width: 30px; /* Taille des balles */
+            height: 30px; /* Taille des balles */
+            border-radius: 50%;
+        }
+
+        #ball1 {
+            background-color: red;
+        }
+
+        #ball2 {
+            background-color: blue;
+        }
+
+        #ball3 {
+            background-color: green;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #info {
+            margin-top: 10px;
+            font-size: 18px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div class="ball" id="ball1"></div>
+        <div class="ball" id="ball2"></div>
+    </div>
+    <div id="info">
+        <p>Temps écoulé : <span id="timer">0</span> secondes</p>
+        <p>Collisions totales : <span id="collisionCounter">0</span></p>
+    </div>
+    <button id="resetButton">Relancer la partie</button>
+
+    <script>
+        // Sélectionner les balles, le conteneur, le bouton et les éléments d'information
+        const ball1 = document.getElementById('ball1');
+        const ball2 = document.getElementById('ball2');
+        const container = document.getElementById('container');
+        const resetButton = document.getElementById('resetButton');
+        const timerElement = document.getElementById('timer');
+        const collisionCounterElement = document.getElementById('collisionCounter');
+
+        // Dimensions du conteneur
+        const containerWidth = container.offsetWidth;
+        const containerHeight = container.offsetHeight;
+
+        // Nouvelle taille des balles
+        const ballSize = 30;
+        const radius = ballSize / 2; // Rayon d'une balle
+        const minDistance = 2 * radius; // Distance minimale entre les centres des balles
+
+        // Compteur de collisions
+        let collisionCount = 0;
+
+        // Chronomètre
+        let startTime = null;
+
+        // Limite de vitesse maximale
+        const maxSpeed = 5;
+
+        // Fonction pour mettre à jour la position des balles
+        function updateBallPosition(ball, x, y) {
+            ball.style.left = `${x}px`;
+            ball.style.top = `${y}px`;
+        }
+
+        // Vérifier si deux balles se touchent ou sont trop proches
+        function checkCollision(ball1X, ball1Y, ball2X, ball2Y) {
+            const distanceX = ball1X - ball2X;
+            const distanceY = ball1Y - ball2Y;
+            const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+            return distance < minDistance; // Les balles sont en collision si la distance est inférieure à minDistance
+        }
+
+        // Ajuster les positions après une collision pour respecter la règle de distance minimale
+        function adjustPositions(ball1X, ball1Y, ball2X, ball2Y) {
+            const dx = ball2X - ball1X;
+            const dy = ball2Y - ball1Y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance === 0) return { newBall1X: ball1X, newBall1Y: ball1Y, newBall2X: ball2X, newBall2Y: ball2Y };
+
+            // Calculer le vecteur unitaire entre les deux balles
+            const unitX = dx / distance;
+            const unitY = dy / distance;
+
+            // Calculer la distance à ajouter pour respecter minDistance
+            const adjustment = (minDistance - distance) / 2;
+
+            // Ajuster les positions
+            const newBall1X = ball1X - unitX * adjustment;
+            const newBall1Y = ball1Y - unitY * adjustment;
+            const newBall2X = ball2X + unitX * adjustment;
+            const newBall2Y = ball2Y + unitY * adjustment;
+
+            return { newBall1X, newBall1Y, newBall2X, newBall2Y };
+        }
+
+        // Ajouter une troisième balle
+        function addThirdBall() {
+            const ball3 = document.createElement('div');
+            ball3.id = 'ball3';
+            ball3.className = 'ball';
+            container.appendChild(ball3);
+
+            // Initialiser les propriétés de la troisième balle avec des valeurs aléatoires
+            const randomX = Math.random() * (containerWidth - ballSize);
+            const randomY = Math.random() * (containerHeight - ballSize);
+            const randomSpeedX = (Math.random() - 0.5) * maxSpeed; // Vitesse horizontale aléatoire
+            const randomSpeedY = (Math.random() - 0.5) * maxSpeed; // Vitesse verticale aléatoire
+
+            return { ball3X: randomX, ball3Y: randomY, ball3SpeedX: randomSpeedX, ball3SpeedY: randomSpeedY };
+        }
+
+        // Réinitialiser la partie
+        function resetGame() {
+            // Initialiser les positions et vitesses des balles avec des valeurs aléatoires
+            const randomBall1SpeedX = (Math.random() - 0.5) * maxSpeed;
+            const randomBall1SpeedY = (Math.random() - 0.5) * maxSpeed;
+            const randomBall2SpeedX = (Math.random() - 0.5) * maxSpeed;
+            const randomBall2SpeedY = (Math.random() - 0.5) * maxSpeed;
+
+            let ball1X = Math.random() * (containerWidth - ballSize);
+            let ball1Y = Math.random() * (containerHeight - ballSize);
+            let ball2X = Math.random() * (containerWidth - ballSize);
+            let ball2Y = Math.random() * (containerHeight - ballSize);
+
+            // Éviter que les balles ne se chevauchent au départ
+            while (checkCollision(ball1X, ball1Y, ball2X, ball2Y)) {
+                ball2X = Math.random() * (containerWidth - ballSize);
+                ball2Y = Math.random() * (containerHeight - ballSize);
+            }
+
+            // Réinitialiser les propriétés globales
+            window.ball1X = ball1X;
+            window.ball1Y = ball1Y;
+            window.ball1SpeedX = randomBall1SpeedX;
+            window.ball1SpeedY = randomBall1SpeedY;
+
+            window.ball2X = ball2X;
+            window.ball2Y = ball2Y;
+            window.ball2SpeedX = randomBall2SpeedX;
+            window.ball2SpeedY = randomBall2SpeedY;
+
+            // Supprimer la troisième balle si elle existe
+            const ball3 = document.getElementById('ball3');
+            if (ball3) {
+                ball3.remove();
+                window.ball3Added = false;
+            }
+
+            // Réinitialiser le compteur de collisions
+            collisionCount = 0;
+            collisionCounterElement.textContent = collisionCount;
+
+            // Réinitialiser le chronomètre
+            startTime = null;
+            timerElement.textContent = '0';
+
+            // Réappliquer les positions initiales aux balles
+            updateBallPosition(ball1, ball1X, ball1Y);
+            updateBallPosition(ball2, ball2X, ball2Y);
+        }
+
+        // Écouteur d'événement pour le bouton "Relancer"
+        resetButton.addEventListener('click', () => {
+            resetGame();
+        });
+
+        // Gestion des collisions avec les bords
+        function handleBoundaryCollision(x, y, speedX, speedY) {
+            let newX = x + speedX;
+            let newY = y + speedY;
+
+            // Vérifier les limites horizontales
+            if (newX < 0) {
+                newX = 0;
+                speedX = -speedX;
+            } else if (newX > containerWidth - ballSize) {
+                newX = containerWidth - ballSize;
+                speedX = -speedX;
+            }
+
+            // Vérifier les limites verticales
+            if (newY < 0) {
+                newY = 0;
+                speedY = -speedY;
+            } else if (newY > containerHeight - ballSize) {
+                newY = containerHeight - ballSize;
+                speedY = -speedY;
+            }
+
+            return { newX, newY, newSpeedX: speedX, newSpeedY: speedY };
+        }
+
+        // Appliquer un effet aléatoire lors des collisions
+        function applyRandomEffect(speedX, speedY) {
+            const randomnessFactor = (Math.random() - 0.5) * 0.5; // Facteur aléatoire (-0.25 à 0.25)
+            const newSpeedX = speedX + speedX * randomnessFactor;
+            const newSpeedY = speedY + speedY * randomnessFactor;
+
+            // Limiter la vitesse maximale
+            return {
+                newSpeedX: Math.max(-maxSpeed, Math.min(maxSpeed, newSpeedX)),
+                newSpeedY: Math.max(-maxSpeed, Math.min(maxSpeed, newSpeedY))
+            };
+        }
+
+        // Échanger les vitesses avec une correction pour éviter les blocages
+        function exchangeVelocities(ball1, ball2) {
+            const tempSpeedX = ball1.newSpeedX;
+            const tempSpeedY = ball1.newSpeedY;
+
+            ball1.newSpeedX = ball2.newSpeedX;
+            ball1.newSpeedY = ball2.newSpeedY;
+
+            ball2.newSpeedX = tempSpeedX;
+            ball2.newSpeedY = tempSpeedY;
+
+            // Ajouter une petite impulsion pour éviter les blocages
+            ball1.newSpeedX += Math.sign(ball1.newSpeedX) * 0.2;
+            ball1.newSpeedY += Math.sign(ball1.newSpeedY) * 0.2;
+            ball2.newSpeedX += Math.sign(ball2.newSpeedX) * 0.2;
+            ball2.newSpeedY += Math.sign(ball2.newSpeedY) * 0.2;
+
+            // Limiter la vitesse maximale
+            ball1.newSpeedX = Math.max(-maxSpeed, Math.min(maxSpeed, ball1.newSpeedX));
+            ball1.newSpeedY = Math.max(-maxSpeed, Math.min(maxSpeed, ball1.newSpeedY));
+            ball2.newSpeedX = Math.max(-maxSpeed, Math.min(maxSpeed, ball2.newSpeedX));
+            ball2.newSpeedY = Math.max(-maxSpeed, Math.min(maxSpeed, ball2.newSpeedY));
+        }
+
+        // Fonction principale d'animation
+        function animate(timestamp) {
+            if (!startTime) {
+                startTime = timestamp; // Initialiser le chronomètre au premier appel
+            }
+
+            // Calculer le temps écoulé en secondes
+            const elapsedTime = Math.floor((timestamp - startTime) / 1000);
+            timerElement.textContent = elapsedTime;
+
+            // Mettre à jour la position de la balle 1
+            const result1 = handleBoundaryCollision(window.ball1X, window.ball1Y, window.ball1SpeedX, window.ball1SpeedY);
+            window.ball1X = result1.newX;
+            window.ball1Y = result1.newY;
+            window.ball1SpeedX = result1.newSpeedX;
+            window.ball1SpeedY = result1.newSpeedY;
+
+            // Mettre à jour la position de la balle 2
+            const result2 = handleBoundaryCollision(window.ball2X, window.ball2Y, window.ball2SpeedX, window.ball2SpeedY);
+            window.ball2X = result2.newX;
+            window.ball2Y = result2.newY;
+            window.ball2SpeedX = result2.newSpeedX;
+            window.ball2SpeedY = result2.newSpeedY;
+
+            // Vérifier la collision entre les deux premières balles
+            if (checkCollision(window.ball1X, window.ball1Y, window.ball2X, window.ball2Y)) {
+                // Ajuster les positions pour respecter la règle de distance minimale
+                const adjustedPositions = adjustPositions(window.ball1X, window.ball1Y, window.ball2X, window.ball2Y);
+                window.ball1X = adjustedPositions.newBall1X;
+                window.ball1Y = adjustedPositions.newBall1Y;
+                window.ball2X = adjustedPositions.newBall2X;
+                window.ball2Y = adjustedPositions.newBall2Y;
+
+                const ball1 = { newX: window.ball1X, newY: window.ball1Y, newSpeedX: window.ball1SpeedX, newSpeedY: window.ball1SpeedY };
+                const ball2 = { newX: window.ball2X, newY: window.ball2Y, newSpeedX: window.ball2SpeedX, newSpeedY: window.ball2SpeedY };
+
+                // Échanger les vitesses avec correction
+                exchangeVelocities(ball1, ball2);
+
+                // Appliquer un effet aléatoire
+                const randomEffect1 = applyRandomEffect(ball1.newSpeedX, ball1.newSpeedY);
+                const randomEffect2 = applyRandomEffect(ball2.newSpeedX, ball2.newSpeedY);
+
+                window.ball1SpeedX = randomEffect1.newSpeedX;
+                window.ball1SpeedY = randomEffect1.newSpeedY;
+                window.ball2SpeedX = randomEffect2.newSpeedX;
+                window.ball2SpeedY = randomEffect2.newSpeedY;
+
+                // Incrémenter le compteur de collisions
+                collisionCount++;
+                collisionCounterElement.textContent = collisionCount;
+
+                // Ajouter une troisième balle si le compteur atteint 10
+                if (collisionCount >= 10 && !window.ball3Added) {
+                    const ball3Props = addThirdBall();
+                    window.ball3X = ball3Props.ball3X;
+                    window.ball3Y = ball3Props.ball3Y;
+                    window.ball3SpeedX = ball3Props.ball3SpeedX;
+                    window.ball3SpeedY = ball3Props.ball3SpeedY;
+                    window.ball3Added = true;
+                }
+            }
+
+            // Si la troisième balle a été ajoutée, mettre à jour sa position
+            if (window.ball3Added) {
+                const result3 = handleBoundaryCollision(
+                    window.ball3X, window.ball3Y, window.ball3SpeedX, window.ball3SpeedY
+                );
+                window.ball3X = result3.newX;
+                window.ball3Y = result3.newY;
+                window.ball3SpeedX = result3.newSpeedX;
+                window.ball3SpeedY = result3.newSpeedY;
+
+                // Vérifier la collision entre la balle 1 et la balle 3
+                if (checkCollision(window.ball1X, window.ball1Y, window.ball3X, window.ball3Y)) {
+                    // Ajuster les positions pour respecter la règle de distance minimale
+                    const adjustedPositions = adjustPositions(window.ball1X, window.ball1Y, window.ball3X, window.ball3Y);
+                    window.ball1X = adjustedPositions.newBall1X;
+                    window.ball1Y = adjustedPositions.newBall1Y;
+                    window.ball3X = adjustedPositions.newBall2X;
+                    window.ball3Y = adjustedPositions.newBall2Y;
+
+                    const ball1 = { newX: window.ball1X, newY: window.ball1Y, newSpeedX: window.ball1SpeedX, newSpeedY: window.ball1SpeedY };
+                    const ball3 = { newX: window.ball3X, newY: window.ball3Y, newSpeedX: window.ball3SpeedX, newSpeedY: window.ball3SpeedY };
+
+                    // Échanger les vitesses avec correction
+                    exchangeVelocities(ball1, ball3);
+
+                    // Appliquer un effet aléatoire
+                    const randomEffect1 = applyRandomEffect(ball1.newSpeedX, ball1.newSpeedY);
+                    const randomEffect3 = applyRandomEffect(ball3.newSpeedX, ball3.newSpeedY);
+
+                    window.ball1SpeedX = randomEffect1.newSpeedX;
+                    window.ball1SpeedY = randomEffect1.newSpeedY;
+                    window.ball3SpeedX = randomEffect3.newSpeedX;
+                    window.ball3SpeedY = randomEffect3.newSpeedY;
+
+                    // Incrémenter le compteur de collisions
+                    collisionCount++;
+                    collisionCounterElement.textContent = collisionCount;
+                }
+
+                // Vérifier la collision entre la balle 2 et la balle 3
+                if (checkCollision(window.ball2X, window.ball2Y, window.ball3X, window.ball3Y)) {
+                    // Ajuster les positions pour respecter la règle de distance minimale
+                    const adjustedPositions = adjustPositions(window.ball2X, window.ball2Y, window.ball3X, window.ball3Y);
+                    window.ball2X = adjustedPositions.newBall1X;
+                    window.ball2Y = adjustedPositions.newBall1Y;
+                    window.ball3X = adjustedPositions.newBall2X;
+                    window.ball3Y = adjustedPositions.newBall2Y;
+
+                    const ball2 = { newX: window.ball2X, newY: window.ball2Y, newSpeedX: window.ball2SpeedX, newSpeedY: window.ball2SpeedY };
+                    const ball3 = { newX: window.ball3X, newY: window.ball3Y, newSpeedX: window.ball3SpeedX, newSpeedY: window.ball3SpeedY };
+
+                    // Échanger les vitesses avec correction
+                    exchangeVelocities(ball2, ball3);
+
+                    // Appliquer un effet aléatoire
+                    const randomEffect2 = applyRandomEffect(ball2.newSpeedX, ball2.newSpeedY);
+                    const randomEffect3 = applyRandomEffect(ball3.newSpeedX, ball3.newSpeedY);
+
+                    window.ball2SpeedX = randomEffect2.newSpeedX;
+                    window.ball2SpeedY = randomEffect2.newSpeedY;
+                    window.ball3SpeedX = randomEffect3.newSpeedX;
+                    window.ball3SpeedY = randomEffect3.newSpeedY;
+
+                    // Incrémenter le compteur de collisions
+                    collisionCount++;
+                    collisionCounterElement.textContent = collisionCount;
+                }
+
+                // Appliquer la nouvelle position à la balle 3
+                updateBallPosition(document.getElementById('ball3'), window.ball3X, window.ball3Y);
+            }
+
+            // Appliquer les nouvelles positions aux balles 1 et 2
+            updateBallPosition(ball1, window.ball1X, window.ball1Y);
+            updateBallPosition(ball2, window.ball2X, window.ball2Y);
+
+            // Répéter l'animation
+            requestAnimationFrame(animate);
+        }
+
+        // Démarrer l'animation
+        resetGame(); // Initialiser la partie avant de démarrer l'animation
+        animate();
+    </script>
+</body>
+</html>
