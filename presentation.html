@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -29,8 +28,8 @@
   .screen {
     width: 100%;
     padding: 20px;
-    background-color: #fff;
-    color: #333;
+    background-color: #000; /* changed for Matrix mode */
+    color: #0f0;           /* changed for Matrix mode */
     border: 1px solid #ddd;
     border-radius: 10px;
     font-size: 18px;
@@ -147,7 +146,7 @@
     <div class="key">i</div>
     <div class="key">o</div>
     <div class="key">p</div>
-    <div class="key enter-key" id="enterKey">Entrée</div>
+    <div class="key enter-key" id="enterKey">↵</div>
   </div>
   <div class="row">
     <div class="key special-key">Caps</div>
@@ -189,11 +188,16 @@
     "je suis un développeur et l'IA est mon nouveau Dada.",
     "Cette animation a été réalisée avec l'aide de QWEN 2.5.",
     " Aucune ligne de code n'a été tapée par un humain",
-    " ;)"
+    "😉" // updated emoji
   ];
   let phraseIndex = 0;
 
   function typeWriter(phrase) {
+    if (phrase === "😉") {
+      screen.style.textAlign = 'center';
+    } else {
+      screen.style.textAlign = 'left';
+    }
     let charIndex = 0;
 
     function simulateKeyPress() {
