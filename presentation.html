@@ -1,0 +1,219 @@
+
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clavier AZERTY avec Écran Années 80</title>
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #000;
+    font-family: 'Courier New', monospace;
+  }
+  .screen {
+    width: 100%;
+    max-width: 600px;
+    height: 120px; /* Double la hauteur */
+    padding: 20px;
+    background-color: #000;
+    color: #32cd32; /* Couleur verte des années 80 */
+    border: 2px solid #32cd32;
+    border-radius: 5px;
+    font-size: 18px;
+    text-align: center; /* Centrer le texte */
+    overflow: auto; /* Ajoute une barre de défilement si nécessaire */
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+    box-shadow: inset 0 0 10px #32cd32;
+  }
+  .keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px;
+    background-color: #222;
+    border: 2px solid #32cd32;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  }
+  .row {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+  }
+  .key {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #32cd32;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease;
+  }
+  .key:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 4px rgba(0, 255, 0, 0.2);
+  }
+  .key.active {
+    background-color: #228b22;
+    color: #fff;
+  }
+  .wide-key {
+    width: 80px;
+  }
+  .extra-wide-key {
+    width: 120px;
+  }
+  /* Style spécifique pour la touche "Entrée" */
+  #enterKey {
+    background-color: #32cd32;
+    color: #000;
+    border: 1px solid #228b22;
+  }
+  #enterKey:hover {
+    background-color: #228b22;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 255, 0, 0.4);
+  }
+</style>
+</head>
+<body>
+
+<div class="screen" id="screen">Cliquez sur la touche Entrée pour commencer.</div>
+
+<div class="keyboard">
+  <div class="row">
+    <div class="key wide-key"><</div>
+    <div class="key">1</div>
+    <div class="key">2</div>
+    <div class="key">3</div>
+    <div class="key">4</div>
+    <div class="key">5</div>
+    <div class="key">6</div>
+    <div class="key">7</div>
+    <div class="key">8</div>
+    <div class="key">9</div>
+    <div class="key">0</div>
+    <div class="key">°</div>
+    <div class="key">+</div>
+    <div class="key wide-key">Suppr</div>
+  </div>
+  <div class="row">
+    <div class="key wide-key">Tab</div>
+    <div class="key">a</div>
+    <div class="key">z</div>
+    <div class="key">e</div>
+    <div class="key">r</div>
+    <div class="key">t</div>
+    <div class="key">y</div>
+    <div class="key">u</div>
+    <div class="key">i</div>
+    <div class="key">o</div>
+    <div class="key">p</div>
+    <div class="key">^</div>
+    <div class="key">$</div>
+    <div class="key wide-key" id="enterKey">Entrée</div>
+  </div>
+  <div class="row">
+    <div class="key extra-wide-key">Caps</div>
+    <div class="key">q</div>
+    <div class="key">s</div>
+    <div class="key">d</div>
+    <div class="key">f</div>
+    <div class="key">g</div>
+    <div class="key">h</div>
+    <div class="key">j</div>
+    <div class="key">k</div>
+    <div class="key">l</div>
+    <div class="key">m</div>
+    <div class="key">ù</div>
+    <div class="key">*</div>
+    <div class="key wide-key"></div>
+  </div>
+  <div class="row">
+    <div class="key wide-key">Shift</div>
+    <div class="key">w</div>
+    <div class="key">x</div>
+    <div class="key">c</div>
+    <div class="key">v</div>
+    <div class="key">b</div>
+    <div class="key">n</div>
+    <div class="key">,</div>
+    <div class="key">;</div>
+    <div class="key">:</div>
+    <div class="key">!</div>
+    <div class="key wide-key">Shift</div>
+    <div class="key">?</div>
+    <div class="key">></div>
+  </div>
+  <div class="row">
+    <div class="key extra-wide-key">Espace</div>
+  </div>
+</div>
+
+<script>
+  const screen = document.getElementById('screen');
+  const enterKey = document.getElementById('enterKey');
+  const phrases = [
+    "je suis un développeur et l'IA est mon nouveau Dada.",
+    "cette animation a été réalisée avec l'aide de QWEN 2.5.",
+    "...",
+    "PS: Aucune ligne de code n'a été tapée par un humain ",
+    ";)"
+  ];
+  let phraseIndex = 0;
+  let charIndex = 0;
+
+  function typeWriter() {
+    if (charIndex < phrases[phraseIndex].length) {
+      const char = phrases[phraseIndex].charAt(charIndex).toLowerCase(); // Caractère à afficher
+      const keys = document.querySelectorAll('.key');
+      let keyElement = null;
+
+      // Recherche de la touche correspondante
+      keys.forEach(key => {
+        if (key.textContent.toLowerCase() === char || (char === ' ' && key.textContent === 'Espace')) {
+          keyElement = key;
+        }
+      });
+
+      if (keyElement) {
+        keyElement.classList.add('active'); // Active la touche
+        setTimeout(() => keyElement.classList.remove('active'), 100); // Désactive après 100ms
+      }
+
+      screen.textContent += char === ' ' ? ' ' : char; // Affiche le caractère
+      charIndex++;
+      setTimeout(typeWriter, 150); // Vitesse de frappe (en millisecondes)
+    } else {
+      screen.textContent += "\n"; // Retour à la ligne après la fin de la phrase
+      charIndex = 0;
+      phraseIndex++;
+
+      if (phraseIndex < phrases.length) {
+        setTimeout(typeWriter, 1000); // Attend 1 seconde avant d'écrire la prochaine phrase
+      }
+    }
+  }
+
+  enterKey.addEventListener('click', () => {
+    screen.textContent = ""; // Efface l'écran avant d'afficher les phrases
+    phraseIndex = 0; // Réinitialise l'index de la phrase
+    typeWriter();
+  });
+</script>
+
+</body>
+</html>
