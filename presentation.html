@@ -96,10 +96,16 @@
   .enter-key {
     background-color: #007bff;
     color: #fff;
+    font-size: 1.5rem;       /* increased font size */
+    padding: 8px 12px;       /* added padding for a larger button look */
+    border-radius: 8px;      /* rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* subtle shadow */
+    transition: transform 0.1s ease, box-shadow 0.2s ease; /* smooth hover effects */
   }
-
+  
   .enter-key:hover {
-    background-color: #0056b3;
+    transform: scale(1.1);   /* slightly enlarges the button */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* deeper shadow on hover */
   }
 
   .space-key {
