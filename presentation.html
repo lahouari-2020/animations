@@ -168,7 +168,7 @@
     <div class="key">&amp;</div>
   </div>
   <div class="row">
-    <div class="key special-key">Shift</div>
+    <div class="key special-key">⇧</div>
     <div class="key">z</div>
     <div class="key">x</div>
     <div class="key">c</div>
@@ -178,7 +178,7 @@
     <div class="key">m</div>
     <div class="key">,</div>
     <div class="key">.</div>
-    <div class="key special-key">Shift</div>
+    <div class="key special-key">⇧</div>
   </div>
   <div class="row">
     <div class="key special-key">Alt</div>
@@ -237,6 +237,10 @@
 
         if (phraseIndex < phrases.length) {
           setTimeout(() => typeWriter(phrases[phraseIndex]), 1000); // Attendre avant de passer à la phrase suivante
+        } else {
+          // Animation finished: reset Enter key style
+          enterKey.style.backgroundColor = '#007bff';
+          enterKey.style.color = '#fff';
         }
       }
     }
