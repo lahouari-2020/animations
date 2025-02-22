@@ -54,6 +54,16 @@
         <input type="range" id="m1-slider" min="1" max="2" step="0.01" value="1">
         <span id="m1-value" class="slider-value">1.00</span>
     </div>
+    <div class="slider-container">
+        <label for="l2-slider">Longueur l2 (m): </label>
+        <input type="range" id="l2-slider" min="0.5" max="1" step="0.01" value="1">
+        <span id="l2-value" class="slider-value">1.00</span>
+    </div>
+    <div class="slider-container">
+        <label for="m2-slider">Masse m2 (kg): </label>
+        <input type="range" id="m2-slider" min="1" max="2" step="0.01" value="1">
+        <span id="m2-value" class="slider-value">1.00</span>
+    </div>
     <canvas id="canvas" width="800" height="600"></canvas>
 
     <script>
@@ -64,6 +74,10 @@
         const l1Value = document.getElementById('l1-value');
         const m1Slider = document.getElementById('m1-slider');
         const m1Value = document.getElementById('m1-value');
+        const l2Slider = document.getElementById('l2-slider');
+        const l2Value = document.getElementById('l2-value');
+        const m2Slider = document.getElementById('m2-slider');
+        const m2Value = document.getElementById('m2-value');
 
         // Constantes physiques
         const g = 9.81; // accélération gravitationnelle (m/s²)
@@ -75,9 +89,9 @@
         // Paramètres initiaux du pendule
         const initialState = {
             m1: 1,    // Valeur initiale, sera mise à jour par le curseur
-            m2: 1,
+            m2: 1,    // Valeur initiale, sera mise à jour par le curseur
             l1: 1,    // Valeur initiale, sera mise à jour par le curseur
-            l2: 1,
+            l2: 1,    // Valeur initiale, sera mise à jour par le curseur
             a1: Math.PI / 2,
             a2: Math.PI / 4,
             a1_v: 0,
@@ -109,13 +123,27 @@
             m1 = parseFloat(m1Slider.value);
             m1Value.textContent = m1.toFixed(2);
             initialState.m1 = m1;
-            // Pas besoin de redessiner ici car la masse n'affecte pas l'apparence statique
+        });
+
+        // Mettre à jour l'affichage de la valeur du curseur pour l2
+        l2Slider.addEventListener('input', () => {
+            l2 = parseFloat(l2Slider.value);
+            l2Value.textContent = l2.toFixed(2);
+            initialState.l2 = l2;
+            if (!animationRunning) draw();
+        });
+
+        // Mettre à jour l'affichage de la valeur du curseur pour m2
+        m2Slider.addEventListener('input', () => {
+            m2 = parseFloat(m2Slider.value);
+            m2Value.textContent = m2.toFixed(2);
+            initialState.m2 = m2;
         });
 
         function resetPendulum() {
-            m1 = initialState.m1; // Utilise la valeur actuelle du curseur
+            m1 = initialState.m1;
             m2 = initialState.m2;
-            l1 = initialState.l1; // Utilise la valeur actuelle du curseur
+            l1 = initialState.l1;
             l2 = initialState.l2;
             a1 = initialState.a1;
             a2 = initialState.a2;
