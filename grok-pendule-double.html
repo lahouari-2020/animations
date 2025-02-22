@@ -17,7 +17,7 @@
             background: #fff;
         }
         button {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
@@ -29,16 +29,41 @@
         button:hover {
             background-color: #45a049;
         }
+        .slider-container {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        input[type="range"] {
+            width: 200px;
+        }
+        .slider-value {
+            font-size: 14px;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
     <button id="startButton">Réinitialiser et Démarrer</button>
+    <div class="slider-container">
+        <label for="l1-slider">Longueur l1 (m): </label>
+        <input type="range" id="l1-slider" min="0.5" max="1" step="0.01" value="1">
+        <span id="l1-value" class="slider-value">1.00</span>
+    </div>
+    <div class="slider-container">
+        <label for="m1-slider">Masse m1 (kg): </label>
+        <input type="range" id="m1-slider" min="1" max="2" step="0.01" value="1">
+        <span id="m1-value" class="slider-value">1.00</span>
+    </div>
     <canvas id="canvas" width="800" height="600"></canvas>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const startButton = document.getElementById('startButton');
+        const l1Slider = document.getElementById('l1-slider');
+        const l1Value = document.getElementById('l1-value');
+        const m1Slider = document.getElementById('m1-slider');
+        const m1Value = document.getElementById('m1-value');
 
         // Constantes physiques
         const g = 9.81; // accélération gravitationnelle (m/s²)
@@ -49,9 +74,9 @@
 
         // Paramètres initiaux du pendule
         const initialState = {
-            m1: 1,
-            m2: 1.1,
-            l1: 0.81,
+            m1: 1,    // Valeur initiale, sera mise à jour par le curseur
+            m2: 1,
+            l1: 1,    // Valeur initiale, sera mise à jour par le curseur
             l2: 1,
             a1: Math.PI / 2,
             a2: Math.PI / 4,
@@ -71,10 +96,26 @@
         let lastTime = 0;
         let animationRunning = false;
 
+        // Mettre à jour l'affichage de la valeur du curseur pour l1
+        l1Slider.addEventListener('input', () => {
+            l1 = parseFloat(l1Slider.value);
+            l1Value.textContent = l1.toFixed(2);
+            initialState.l1 = l1;
+            if (!animationRunning) draw();
+        });
+
+        // Mettre à jour l'affichage de la valeur du curseur pour m1
+        m1Slider.addEventListener('input', () => {
+            m1 = parseFloat(m1Slider.value);
+            m1Value.textContent = m1.toFixed(2);
+            initialState.m1 = m1;
+            // Pas besoin de redessiner ici car la masse n'affecte pas l'apparence statique
+        });
+
         function resetPendulum() {
-            m1 = initialState.m1;
+            m1 = initialState.m1; // Utilise la valeur actuelle du curseur
             m2 = initialState.m2;
-            l1 = initialState.l1;
+            l1 = initialState.l1; // Utilise la valeur actuelle du curseur
             l2 = initialState.l2;
             a1 = initialState.a1;
             a2 = initialState.a2;
@@ -145,7 +186,6 @@
             let dt = (timestamp - lastTime) / 1000;
             lastTime = timestamp;
 
-            // Limiter dt pour éviter les sauts trop grands
             if (dt > maxDt) dt = maxDt;
 
             update(dt);
