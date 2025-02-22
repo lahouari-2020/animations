@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pendule Double</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            background: #f0f0f0;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #fff;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+  
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div id="mass-info" style="text-align: center; margin-top: 10px;"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Constantes physiques
+        const g = 9.81; // accélération gravitationnelle (m/s²)
+        const originX = canvas.width / 2;
+        const originY = 250;
+        const scale = 150; // échelle pour convertir mètres en pixels
+
+        // Paramètres du pendule
+        let m1 = 1;    // masse 1 (kg)
+        let m2 = 1.1;    // masse 2 (kg)
+        let l1 = 0.8;    // longueur tige 1 (m)
+        let l2 = 1;    // longueur tige 2 (m)
+        let a1 = Math.PI / 2;  // angle initial 1 (radians)
+        let a2 = Math.PI / 4;  // angle initial 2 (radians)
+        let a1_v = 0;  // vitesse angulaire 1
+        let a2_v = 0;  // vitesse angulaire 2
+
+        let lastTime = 0;
+
+        function calculateAcceleration(t) {
+            // Equations du mouvement pour un pendule double
+            const num1 = -g * (2 * m1 + m2) * Math.sin(a1);
+            const num2 = -m2 * g * Math.sin(a1 - 2 * a2);
+            const num3 = -2 * Math.sin(a1 - a2) * m2;
+            const num4 = a2_v * a2_v * l2 + a1_v * a1_v * l1 * Math.cos(a1 - a2);
+            const den1 = l1 * (2 * m1 + m2 - m2 * Math.cos(2 * a1 - 2 * a2));
+            
+            const num5 = 2 * Math.sin(a1 - a2);
+            const num6 = (a1_v * a1_v * l1 * (m1 + m2));
+            const num7 = g * (m1 + m2) * Math.cos(a1);
+            const num8 = a2_v * a2_v * l2 * m2 * Math.cos(a1 - a2);
+            const den2 = l2 * (2 * m1 + m2 - m2 * Math.cos(2 * a1 - 2 * a2));
+
+            const a1_a = (num1 + num2 + num3 * num4) / den1;
+            const a2_a = (num5 * (num6 + num7 + num8)) / den2;
+
+            return { a1_a, a2_a };
+        }
+
+        function update(dt) {
+            // Mise à jour des positions avec méthode d'intégration simple (Euler)
+            const acc = calculateAcceleration();
+            
+            a1_v += acc.a1_a * dt;
+            a2_v += acc.a2_a * dt;
+            a1 += a1_v * dt;
+            a2 += a2_v * dt;
+
+            // Ajout d'une légère friction pour éviter une énergie infinie
+          //  a1_v *= 0.999;
+          //  a2_v *= 0.999;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calcul des positions
+            const x1 = originX + l1 * scale * Math.sin(a1);
+            const y1 = originY + l1 * scale * Math.cos(a1);
+            const x2 = x1 + l2 * scale * Math.sin(a2);
+            const y2 = y1 + l2 * scale * Math.cos(a2);
+
+            // Dessin des tiges
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(x1, y1);
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Dessin des masses
+            ctx.beginPath();
+            ctx.arc(x1, y1, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff0000';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(x2, y2, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#0000ff';
+            ctx.fill();
+        }
+
+        function animate(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = (timestamp - lastTime) / 1000; // conversion en secondes
+            lastTime = timestamp;
+
+            update(dt);
+            draw();
+            
+            // Affichage des valeurs des masses sous le canvas
+            document.getElementById('mass-info').textContent = "m1: " + m1 + " kg, m2: " + m2 + " kg";
+            
+            requestAnimationFrame(animate);
+        }
+
+        // Démarrer l'animation
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>
