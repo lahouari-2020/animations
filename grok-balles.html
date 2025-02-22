@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation de balles avec compteur de collisions</title>
+    <style>
+        .container {
+            width: 500px;
+            height: 500px;
+            border: 1px solid black;
+            background-color: blue;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ball {
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        #collisionCounter {
+            margin-top: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+        #timer {
+    margin-top: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="ball"></div>
+        <div class="ball"></div>
+        <div class="ball"></div>
+        <div class="ball"></div>
+        <div class="ball"></div>
+    </div>
+    <p id="timer">Temps écoulé : 0s</p>
+    <p id="collisionCounter">Collisions entre balles : 0</p>
+    <script>
+        const container = document.querySelector('.container');
+        const balls = document.querySelectorAll('.ball');
+        const ballRadius = 25; // Rayon des balles (50px / 2)
+        const containerSize = 500;
+        const ballData = [];
+        let collisionCount = 0; // Variable pour compter les collisions
+        let startTime = Date.now(); // Temps de début en millisecondes
+
+
+        // Initialisation des balles
+        balls.forEach((ball, index) => {
+            const x = Math.random() * (containerSize - 2 * ballRadius) + ballRadius;
+            const y = Math.random() * (containerSize - 2 * ballRadius) + ballRadius;
+            const vx = (Math.random() - 0.5) * 10;
+            const vy = (Math.random() - 0.5) * 10;
+            ballData.push({ element: ball, x, y, vx, vy, mass: 1 });
+            ball.style.left = `${x - ballRadius}px`;
+            ball.style.top = `${y - ballRadius}px`;
+        });
+
+        // Gestion des collisions entre balles
+        function handleBallCollisions() {
+            for (let i = 0; i < ballData.length; i++) {
+                for (let j = i + 1; j < ballData.length; j++) {
+                    const ball1 = ballData[i];
+                    const ball2 = ballData[j];
+                    const dx = ball2.x - ball1.x;
+                    const dy = ball2.y - ball1.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 2 * ballRadius) {
+                        collisionCount++; // Incrémenter le compteur
+                        document.getElementById('collisionCounter').textContent = `Collisions entre balles : ${collisionCount}`;
+
+                        // Gestion physique de la collision
+                        const nx = dx / distance;
+                        const ny = dy / distance;
+                        const tx = -ny;
+                        const ty = nx;
+
+                        const v1n = ball1.vx * nx + ball1.vy * ny;
+                        const v1t = ball1.vx * tx + ball1.vy * ty;
+                        const v2n = ball2.vx * nx + ball2.vy * ny;
+                        const v2t = ball2.vx * tx + ball2.vy * ty;
+
+                        const m1 = ball1.mass;
+                        const m2 = ball2.mass;
+                        const v1nAfter = (v1n * (m1 - m2) + 2 * m2 * v2n) / (m1 + m2);
+                        const v2nAfter = (v2n * (m2 - m1) + 2 * m1 * v1n) / (m1 + m2);
+
+                        ball1.vx = v1nAfter * nx + v1t * tx;
+                        ball1.vy = v1nAfter * ny + v1t * ty;
+                        ball2.vx = v2nAfter * nx + v2t * tx;
+                        ball2.vy = v2nAfter * ny + v2t * ty;
+
+                        const overlap = 2 * ballRadius - distance;
+                        const separation = overlap / 2;
+                        ball1.x -= separation * nx;
+                        ball1.y -= separation * ny;
+                        ball2.x += separation * nx;
+                        ball2.y += separation * ny;
+                    }
+                }
+            }
+        }
+
+        // Mise à jour de l'animation
+        function update() {
+            const currentTime = Date.now();
+    const elapsedTime = (currentTime - startTime) / 1000; // Temps écoulé en secondes
+    document.getElementById('timer').textContent = `Temps écoulé : ${elapsedTime.toFixed(2)}s`;
+
+            ballData.forEach(ball => {
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+
+                if (ball.x - ballRadius < 0 || ball.x + ballRadius > containerSize) {
+                    ball.vx = -ball.vx;
+                    ball.x = Math.max(ballRadius, Math.min(containerSize - ballRadius, ball.x));
+                }
+                if (ball.y - ballRadius < 0 || ball.y + ballRadius > containerSize) {
+                    ball.vy = -ball.vy;
+                    ball.y = Math.max(ballRadius, Math.min(containerSize - ballRadius, ball.y));
+                }
+
+                ball.element.style.left = `${ball.x - ballRadius}px`;
+                ball.element.style.top = `${ball.y - ballRadius}px`;
+            });
+
+            handleBallCollisions();
+            requestAnimationFrame(update);
+        }
+
+        update(); // Lancer l'animation
+    </script>
+</body>
+</html>

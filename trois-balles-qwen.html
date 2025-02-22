@@ -248,28 +248,27 @@
         }
 
         // Échanger les vitesses avec une correction pour éviter les blocages
-        function exchangeVelocities(ball1, ball2) {
-            const tempSpeedX = ball1.newSpeedX;
-            const tempSpeedY = ball1.newSpeedY;
+        function exchangeVelocities(ball1, ball2, ball1X, ball1Y, ball2X, ball2Y) {
+    const dx = ball2X - ball1X;
+    const dy = ball2Y - ball1Y;
+    const collisionAngle = Math.atan2(dy, dx);
 
-            ball1.newSpeedX = ball2.newSpeedX;
-            ball1.newSpeedY = ball2.newSpeedY;
+    const speed1 = Math.sqrt(ball1.newSpeedX * ball1.newSpeedX + ball1.newSpeedY * ball1.newSpeedY);
+    const speed2 = Math.sqrt(ball2.newSpeedX * ball2.newSpeedX + ball2.newSpeedY * ball2.newSpeedY);
 
-            ball2.newSpeedX = tempSpeedX;
-            ball2.newSpeedY = tempSpeedY;
+    const direction1 = Math.atan2(ball1.newSpeedY, ball1.newSpeedX);
+    const direction2 = Math.atan2(ball2.newSpeedY, ball2.newSpeedX);
 
-            // Ajouter une petite impulsion pour éviter les blocages
-            ball1.newSpeedX += Math.sign(ball1.newSpeedX) * 0.2;
-            ball1.newSpeedY += Math.sign(ball1.newSpeedY) * 0.2;
-            ball2.newSpeedX += Math.sign(ball2.newSpeedX) * 0.2;
-            ball2.newSpeedY += Math.sign(ball2.newSpeedY) * 0.2;
+    const newSpeedX1 = speed2 * Math.cos(direction2 - collisionAngle) * Math.cos(collisionAngle) + speed1 * Math.sin(direction1 - collisionAngle) * Math.cos(collisionAngle + Math.PI/2);
+    const newSpeedY1 = speed2 * Math.cos(direction2 - collisionAngle) * Math.sin(collisionAngle) + speed1 * Math.sin(direction1 - collisionAngle) * Math.sin(collisionAngle + Math.PI/2);
+    const newSpeedX2 = speed1 * Math.cos(direction1 - collisionAngle) * Math.cos(collisionAngle) + speed2 * Math.sin(direction2 - collisionAngle) * Math.cos(collisionAngle + Math.PI/2);
+    const newSpeedY2 = speed1 * Math.cos(direction1 - collisionAngle) * Math.sin(collisionAngle) + speed2 * Math.sin(direction2 - collisionAngle) * Math.sin(collisionAngle + Math.PI/2);
 
-            // Limiter la vitesse maximale
-            ball1.newSpeedX = Math.max(-maxSpeed, Math.min(maxSpeed, ball1.newSpeedX));
-            ball1.newSpeedY = Math.max(-maxSpeed, Math.min(maxSpeed, ball1.newSpeedY));
-            ball2.newSpeedX = Math.max(-maxSpeed, Math.min(maxSpeed, ball2.newSpeedX));
-            ball2.newSpeedY = Math.max(-maxSpeed, Math.min(maxSpeed, ball2.newSpeedY));
-        }
+    ball1.newSpeedX = newSpeedX1;
+    ball1.newSpeedY = newSpeedY1;
+    ball2.newSpeedX = newSpeedX2;
+    ball2.newSpeedY = newSpeedY2;
+}
 
         // Fonction principale d'animation
         function animate(timestamp) {
@@ -308,7 +307,8 @@
                 const ball2 = { newX: window.ball2X, newY: window.ball2Y, newSpeedX: window.ball2SpeedX, newSpeedY: window.ball2SpeedY };
 
                 // Échanger les vitesses avec correction
-                exchangeVelocities(ball1, ball2);
+                exchangeVelocities(ball1, ball2, window.ball1X, window.ball1Y, window.ball2X, window.ball2Y);
+
 
                 // Appliquer un effet aléatoire
                 const randomEffect1 = applyRandomEffect(ball1.newSpeedX, ball1.newSpeedY);
@@ -357,7 +357,8 @@
                     const ball3 = { newX: window.ball3X, newY: window.ball3Y, newSpeedX: window.ball3SpeedX, newSpeedY: window.ball3SpeedY };
 
                     // Échanger les vitesses avec correction
-                    exchangeVelocities(ball1, ball3);
+                    exchangeVelocities(ball1, ball3, window.ball1X, window.ball1Y, window.ball3X, window.ball3Y);
+                    
 
                     // Appliquer un effet aléatoire
                     const randomEffect1 = applyRandomEffect(ball1.newSpeedX, ball1.newSpeedY);
@@ -385,8 +386,8 @@
                     const ball2 = { newX: window.ball2X, newY: window.ball2Y, newSpeedX: window.ball2SpeedX, newSpeedY: window.ball2SpeedY };
                     const ball3 = { newX: window.ball3X, newY: window.ball3Y, newSpeedX: window.ball3SpeedX, newSpeedY: window.ball3SpeedY };
 
-                    // Échanger les vitesses avec correction
-                    exchangeVelocities(ball2, ball3);
+                    // Échanger les vitesses avec correction                  
+                    exchangeVelocities(ball2, ball3, window.ball2X, window.ball2Y, window.ball3X, window.ball3Y);
 
                     // Appliquer un effet aléatoire
                     const randomEffect2 = applyRandomEffect(ball2.newSpeedX, ball2.newSpeedY);
