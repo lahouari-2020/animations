@@ -43,24 +43,26 @@
     </style>
 </head>
 <body>
+    <!-- Ajout du titre au-dessus du bouton -->
+    <h1>Pendule Double Sans Frottement</h1>
     <button id="startButton">Réinitialiser et Démarrer</button>
     <div class="slider-container">
-        <label for="l1-slider">Longueur l1 (m): </label>
+        <label for="l1-slider">Longueur 1 (m): </label>
         <input type="range" id="l1-slider" min="0.5" max="1" step="0.01" value="1">
         <span id="l1-value" class="slider-value">1.00</span>
     </div>
     <div class="slider-container">
-        <label for="m1-slider">Masse m1 (kg): </label>
+        <label for="m1-slider">Masse 1 (kg): </label>
         <input type="range" id="m1-slider" min="1" max="2" step="0.01" value="1">
         <span id="m1-value" class="slider-value">1.00</span>
     </div>
     <div class="slider-container">
-        <label for="l2-slider">Longueur l2 (m): </label>
+        <label for="l2-slider">Longueur 2 (m): </label>
         <input type="range" id="l2-slider" min="0.5" max="1" step="0.01" value="1">
         <span id="l2-value" class="slider-value">1.00</span>
     </div>
     <div class="slider-container">
-        <label for="m2-slider">Masse m2 (kg): </label>
+        <label for="m2-slider">Masse 2 (kg): </label>
         <input type="range" id="m2-slider" min="1" max="2" step="0.01" value="1">
         <span id="m2-value" class="slider-value">1.00</span>
     </div>
@@ -82,7 +84,7 @@
         // Constantes physiques
         const g = 9.81; // accélération gravitationnelle (m/s²)
         const originX = canvas.width / 2;
-        const originY = canvas.height / 2.2;
+        const originY = canvas.height / 2.3;
         const scale = 150; // échelle pour convertir mètres en pixels
         const maxDt = 1 / 60; // Limite maximale de dt (en secondes, équivalent 60 FPS)
 
@@ -187,6 +189,7 @@
             const x2 = x1 + l2 * scale * Math.sin(a2);
             const y2 = y1 + l2 * scale * Math.cos(a2);
 
+            // Dessin des tiges
             ctx.beginPath();
             ctx.moveTo(originX, originY);
             ctx.lineTo(x1, y1);
@@ -196,13 +199,18 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
+            // Calculer le rayon en fonction de la masse
+            const r1 = 20 * m1; // le rayon de la masse 1 est proportionnel à m1
+            const r2 = 20 * m2; // le rayon de la masse 2 est proportionnel à m2
+
+            // Dessin des masses
             ctx.beginPath();
-            ctx.arc(x1, y1, 10, 0, Math.PI * 2);
+            ctx.arc(x1, y1, r1, 0, Math.PI * 2);
             ctx.fillStyle = '#ff0000';
             ctx.fill();
 
             ctx.beginPath();
-            ctx.arc(x2, y2, 10, 0, Math.PI * 2);
+            ctx.arc(x2, y2, r2, 0, Math.PI * 2);
             ctx.fillStyle = '#0000ff';
             ctx.fill();
         }
