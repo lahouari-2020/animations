@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Pendule Double</title>
+    <title>Pendule Double Sans Frottement</title>
     <style>
         canvas {
             border: 1px solid black;
@@ -9,44 +9,81 @@
         }
         body {
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
             background: #fff;
-            flex-direction: column;
+        }
+        button {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-  
+    <button id="startButton">Réinitialiser et Démarrer</button>
     <canvas id="canvas" width="800" height="600"></canvas>
-    <div id="mass-info" style="text-align: center; margin-top: 10px;"></div>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const startButton = document.getElementById('startButton');
 
         // Constantes physiques
         const g = 9.81; // accélération gravitationnelle (m/s²)
         const originX = canvas.width / 2;
-        const originY = 250;
+        const originY = 100;
         const scale = 150; // échelle pour convertir mètres en pixels
+        const maxDt = 1 / 60; // Limite maximale de dt (en secondes, équivalent 60 FPS)
 
-        // Paramètres du pendule
-        let m1 = 1;    // masse 1 (kg)
-        let m2 = 1.1;    // masse 2 (kg)
-        let l1 = 0.8;    // longueur tige 1 (m)
-        let l2 = 1;    // longueur tige 2 (m)
-        let a1 = Math.PI / 2;  // angle initial 1 (radians)
-        let a2 = Math.PI / 4;  // angle initial 2 (radians)
-        let a1_v = 0;  // vitesse angulaire 1
-        let a2_v = 0;  // vitesse angulaire 2
+        // Paramètres initiaux du pendule
+        const initialState = {
+            m1: 1,
+            m2: 1,
+            l1: 1,
+            l2: 1,
+            a1: Math.PI / 2,
+            a2: Math.PI / 4,
+            a1_v: 0,
+            a2_v: 0
+        };
+
+        let m1 = initialState.m1;
+        let m2 = initialState.m2;
+        let l1 = initialState.l1;
+        let l2 = initialState.l2;
+        let a1 = initialState.a1;
+        let a2 = initialState.a2;
+        let a1_v = initialState.a1_v;
+        let a2_v = initialState.a2_v;
 
         let lastTime = 0;
+        let animationRunning = false;
+
+        function resetPendulum() {
+            m1 = initialState.m1;
+            m2 = initialState.m2;
+            l1 = initialState.l1;
+            l2 = initialState.l2;
+            a1 = initialState.a1;
+            a2 = initialState.a2;
+            a1_v = initialState.a1_v;
+            a2_v = initialState.a2_v;
+            lastTime = 0;
+        }
 
         function calculateAcceleration(t) {
-            // Equations du mouvement pour un pendule double
             const num1 = -g * (2 * m1 + m2) * Math.sin(a1);
             const num2 = -m2 * g * Math.sin(a1 - 2 * a2);
             const num3 = -2 * Math.sin(a1 - a2) * m2;
@@ -66,29 +103,21 @@
         }
 
         function update(dt) {
-            // Mise à jour des positions avec méthode d'intégration simple (Euler)
             const acc = calculateAcceleration();
-            
             a1_v += acc.a1_a * dt;
             a2_v += acc.a2_a * dt;
             a1 += a1_v * dt;
             a2 += a2_v * dt;
-
-            // Ajout d'une légère friction pour éviter une énergie infinie
-          //  a1_v *= 0.999;
-          //  a2_v *= 0.999;
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Calcul des positions
             const x1 = originX + l1 * scale * Math.sin(a1);
             const y1 = originY + l1 * scale * Math.cos(a1);
             const x2 = x1 + l2 * scale * Math.sin(a2);
             const y2 = y1 + l2 * scale * Math.cos(a2);
 
-            // Dessin des tiges
             ctx.beginPath();
             ctx.moveTo(originX, originY);
             ctx.lineTo(x1, y1);
@@ -98,7 +127,6 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Dessin des masses
             ctx.beginPath();
             ctx.arc(x1, y1, 10, 0, Math.PI * 2);
             ctx.fillStyle = '#ff0000';
@@ -111,21 +139,29 @@
         }
 
         function animate(timestamp) {
+            if (!animationRunning) return;
+
             if (!lastTime) lastTime = timestamp;
-            const dt = (timestamp - lastTime) / 1000; // conversion en secondes
+            let dt = (timestamp - lastTime) / 1000;
             lastTime = timestamp;
+
+            // Limiter dt pour éviter les sauts trop grands
+            if (dt > maxDt) dt = maxDt;
 
             update(dt);
             draw();
-            
-            // Affichage des valeurs des masses sous le canvas
-            document.getElementById('mass-info').textContent = "m1: " + m1 + " kg, m2: " + m2 + " kg";
-            
             requestAnimationFrame(animate);
         }
 
-        // Démarrer l'animation
-        requestAnimationFrame(animate);
+        // Afficher la position initiale
+        draw();
+
+        // Événement du bouton
+        startButton.addEventListener('click', () => {
+            resetPendulum();
+            animationRunning = true;
+            requestAnimationFrame(animate);
+        });
     </script>
 </body>
 </html>
