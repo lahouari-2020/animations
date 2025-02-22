@@ -43,15 +43,15 @@
         // Constantes physiques
         const g = 9.81; // accélération gravitationnelle (m/s²)
         const originX = canvas.width / 2;
-        const originY = 100;
+        const originY = canvas.height / 2;
         const scale = 150; // échelle pour convertir mètres en pixels
         const maxDt = 1 / 60; // Limite maximale de dt (en secondes, équivalent 60 FPS)
 
         // Paramètres initiaux du pendule
         const initialState = {
             m1: 1,
-            m2: 1,
-            l1: 1,
+            m2: 1.1,
+            l1: 0.81,
             l2: 1,
             a1: Math.PI / 2,
             a2: Math.PI / 4,
