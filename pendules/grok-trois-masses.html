@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pendule à trois masses</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+
+    .pendulum {
+      position: relative;
+      width: 300px;
+      height: 400px;
+    }
+
+    .pivot {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      background-color: black;
+      border-radius: 50%;
+      transform: translateX(-50%);
+    }
+
+    .rod {
+      position: absolute;
+      width: 2px;
+      background-color: black;
+      transform-origin: top center;
+    }
+
+    .mass {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: red;
+      border-radius: 50%;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body>
+  <div class="pendulum">
+    <div class="pivot"></div>
+    <div class="rod" id="rod1"></div>
+    <div class="mass" id="mass1"></div>
+    <div class="rod" id="rod2"></div>
+    <div class="mass" id="mass2"></div>
+    <div class="rod" id="rod3"></div>
+    <div class="mass" id="mass3"></div>
+  </div>
+  <script>
+    const g = 9.81; // Accélération due à la gravité (m/s²)
+    const l1 = 100; // Longueur de la première tige (pixels)
+    const l2 = 100; // Longueur de la deuxième tige (pixels)
+    const l3 = 100; // Longueur de la troisième tige (pixels)
+
+    let theta1 = Math.PI / 4; // Angle initial de la première tige
+    let theta2 = Math.PI / 4; // Angle initial de la deuxième tige
+    let theta3 = Math.PI / 4; // Angle initial de la troisième tige
+
+    function updateAngles() {
+      const t = performance.now() / 1000; // Temps en secondes
+      // Approximation sinusoïdale pour chaque angle
+      theta1 = (Math.PI / 4) * Math.cos(Math.sqrt(g / l1) * t);
+      theta2 = (Math.PI / 4) * Math.cos(Math.sqrt(g / l2) * t);
+      theta3 = (Math.PI / 4) * Math.cos(Math.sqrt(g / l3) * t);
+    }
+
+    function draw() {
+      updateAngles();
+
+      // Position de la première masse
+      const x1 = l1 * Math.sin(theta1);
+      const y1 = l1 * Math.cos(theta1);
+
+      // Position de la deuxième masse (relative à la première)
+      const x2 = x1 + l2 * Math.sin(theta2);
+      const y2 = y1 + l2 * Math.cos(theta2);
+
+      // Position de la troisième masse (relative à la deuxième)
+      const x3 = x2 + l3 * Math.sin(theta3);
+      const y3 = y2 + l3 * Math.cos(theta3);
+
+      // Mise à jour de la première tige et masse
+      document.getElementById('rod1').style.height = `${l1}px`;
+      document.getElementById('rod1').style.transform = `rotate(${theta1}rad)`;
+      document.getElementById('mass1').style.left = `${150 + x1}px`; // 150 = centre
+      document.getElementById('mass1').style.top = `${10 + y1}px`;  // 10 = pivot
+
+      // Mise à jour de la deuxième tige et masse
+      document.getElementById('rod2').style.height = `${l2}px`;
+      document.getElementById('rod2').style.left = `${150 + x1}px`;
+      document.getElementById('rod2').style.top = `${10 + y1}px`;
+      document.getElementById('rod2').style.transform = `rotate(${theta2}rad)`;
+      document.getElementById('mass2').style.left = `${150 + x2}px`;
+      document.getElementById('mass2').style.top = `${10 + y2}px`;
+
+      // Mise à jour de la troisième tige et masse
+      document.getElementById('rod3').style.height = `${l3}px`;
+      document.getElementById('rod3').style.left = `${150 + x2}px`;
+      document.getElementById('rod3').style.top = `${10 + y2}px`;
+      document.getElementById('rod3').style.transform = `rotate(${theta3}rad)`;
+      document.getElementById('mass3').style.left = `${150 + x3}px`;
+      document.getElementById('mass3').style.top = `${10 + y3}px`;
+
+      requestAnimationFrame(draw); // Boucle d’animation
+    }
+
+    draw(); // Lancer l’animation
+  </script>
+</body>
+</html>

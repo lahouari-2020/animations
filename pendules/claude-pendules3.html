@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Triple Pendule</title>
+    <style>
+        canvas {
+            border: 1px solid #000;
+            display: block;
+            margin: 20px auto;
+            background: #f0f0f0;
+        }
+        .controls {
+            width: 300px;
+            margin: 20px auto;
+            padding: 10px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .slider-group {
+            margin: 10px 0;
+        }
+        .slider-group label {
+            display: inline-block;
+            width: 100px;
+            margin-right: 10px;
+        }
+        input[type="range"] {
+            width: 150px;
+            vertical-align: middle;
+        }
+        .mass-value {
+            display: inline-block;
+            width: 30px;
+            margin-left: 10px;
+        }
+        #resetButton {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        #resetButton:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pendulumCanvas" width="800" height="600"></canvas>
+    
+    <div class="controls">
+        <div class="slider-group">
+            <label>Masse 1:</label>
+            <input type="range" id="mass1Slider" min="10" max="20" value="10" step="0.1">
+            <span id="mass1Value" class="mass-value">10</span>
+        </div>
+        <div class="slider-group">
+            <label>Masse 2:</label>
+            <input type="range" id="mass2Slider" min="10" max="20" value="10" step="0.1">
+            <span id="mass2Value" class="mass-value">10</span>
+        </div>
+        <div class="slider-group">
+            <label>Masse 3:</label>
+            <input type="range" id="mass3Slider" min="10" max="20" value="10" step="0.1">
+            <span id="mass3Value" class="mass-value">10</span>
+        </div>
+    </div>
+    
+    <button id="resetButton">Relancer</button>
+
+    <script>
+        const canvas = document.getElementById('pendulumCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Configuration constante
+        const length1 = 100;
+        const length2 = 100;
+        const length3 = 100;
+        let mass1 = 10;
+        let mass2 = 10;
+        let mass3 = 10;
+        const gravity = 0.5;
+        const damping = 0.999;
+        const jointRadius = 4;
+
+        // Gestion des curseurs
+        const mass1Slider = document.getElementById('mass1Slider');
+        const mass2Slider = document.getElementById('mass2Slider');
+        const mass3Slider = document.getElementById('mass3Slider');
+        const mass1Value = document.getElementById('mass1Value');
+        const mass2Value = document.getElementById('mass2Value');
+        const mass3Value = document.getElementById('mass3Value');
+
+        mass1Slider.addEventListener('input', function() {
+            mass1 = parseFloat(this.value);
+            mass1Value.textContent = mass1.toFixed(1);
+        });
+
+        mass2Slider.addEventListener('input', function() {
+            mass2 = parseFloat(this.value);
+            mass2Value.textContent = mass2.toFixed(1);
+        });
+
+        mass3Slider.addEventListener('input', function() {
+            mass3 = parseFloat(this.value);
+            mass3Value.textContent = mass3.toFixed(1);
+        });
+
+        // Configuration initiale
+        const initialConfig = {
+            angle1: Math.PI/2,
+            angle2: Math.PI/2,
+            angle3: Math.PI/2,
+            velocity1: 0,
+            velocity2: 0.01,
+            velocity3: -0.01
+        };
+
+        // Variables du pendule
+        let angle1 = initialConfig.angle1;
+        let angle2 = initialConfig.angle2;
+        let angle3 = initialConfig.angle3;
+        let velocity1 = initialConfig.velocity1;
+        let velocity2 = initialConfig.velocity2;
+        let velocity3 = initialConfig.velocity3;
+
+        function drawJoint(x, y) {
+            ctx.beginPath();
+            ctx.fillStyle = '#333';
+            ctx.arc(x, y, jointRadius, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+        }
+
+        function calculateAccelerations() {
+            const g = gravity;
+            const m1 = mass1, m2 = mass2, m3 = mass3;
+            const l1 = length1, l2 = length2, l3 = length3;
+            const sin1 = Math.sin(angle1), sin2 = Math.sin(angle2), sin3 = Math.sin(angle3);
+            const cos1 = Math.cos(angle1), cos2 = Math.cos(angle2), cos3 = Math.cos(angle3);
+            const sin12 = Math.sin(angle1 - angle2);
+            const sin23 = Math.sin(angle2 - angle3);
+            const sin13 = Math.sin(angle1 - angle3);
+            const cos12 = Math.cos(angle1 - angle2);
+            const cos23 = Math.cos(angle2 - angle3);
+            const cos13 = Math.cos(angle1 - angle3);
+
+            // Matrice des masses
+            const d11 = (m1 + m2 + m3) * l1 * l1;
+            const d12 = (m2 + m3) * l1 * l2 * cos12;
+            const d13 = m3 * l1 * l3 * cos13;
+            const d21 = d12;
+            const d22 = (m2 + m3) * l2 * l2;
+            const d23 = m3 * l2 * l3 * cos23;
+            const d31 = d13;
+            const d32 = d23;
+            const d33 = m3 * l3 * l3;
+
+            // Forces
+            const f1 = -(m1 + m2 + m3) * g * l1 * sin1 
+                       - (m2 + m3) * l1 * l2 * velocity2 * velocity2 * sin12
+                       - m3 * l1 * l3 * velocity3 * velocity3 * sin13;
+            
+            const f2 = -(m2 + m3) * g * l2 * sin2 
+                       + (m2 + m3) * l1 * l2 * velocity1 * velocity1 * sin12
+                       - m3 * l2 * l3 * velocity3 * velocity3 * sin23;
+            
+            const f3 = -m3 * g * l3 * sin3 
+                       + m3 * l1 * l3 * velocity1 * velocity1 * sin13
+                       + m3 * l2 * l3 * velocity2 * velocity2 * sin23;
+
+            // Résolution du système
+            const det = d11 * (d22 * d33 - d23 * d32) 
+                     - d12 * (d21 * d33 - d23 * d31) 
+                     + d13 * (d21 * d32 - d22 * d31);
+
+            const acc1 = (f1 * (d22 * d33 - d23 * d32) 
+                       - d12 * (f2 * d33 - d23 * f3) 
+                       + d13 * (f2 * d32 - d22 * f3)) / det;
+
+            const acc2 = (d11 * (f2 * d33 - d23 * f3) 
+                       - f1 * (d21 * d33 - d23 * d31) 
+                       + d13 * (d21 * f3 - f2 * d31)) / det;
+
+            const acc3 = (d11 * (d22 * f3 - f2 * d32) 
+                       - d12 * (d21 * f3 - f2 * d31) 
+                       + f1 * (d21 * d32 - d22 * d31)) / det;
+
+            return [acc1, acc2, acc3];
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const x0 = canvas.width/2;
+            const y0 = 200;
+
+            const x1 = x0 + length1 * Math.sin(angle1);
+            const y1 = y0 + length1 * Math.cos(angle1);
+            
+            const x2 = x1 + length2 * Math.sin(angle2);
+            const y2 = y1 + length2 * Math.cos(angle2);
+
+            const x3 = x2 + length3 * Math.sin(angle3);
+            const y3 = y2 + length3 * Math.cos(angle3);
+
+            // Dessin des tiges
+            ctx.beginPath();
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 2;
+            ctx.moveTo(x0, y0);
+            ctx.lineTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.lineTo(x3, y3);
+            ctx.stroke();
+
+            // Dessin des masses
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc(x1, y1, mass1, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(x2, y2, mass2, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(x3, y3, mass3, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.stroke();
+
+            // Dessin des articulations
+            drawJoint(x0, y0);
+            drawJoint(x1, y1);
+            drawJoint(x2, y2);
+
+            // Calcul et application des mouvements
+            const [acc1, acc2, acc3] = calculateAccelerations();
+
+            velocity1 += acc1;
+            velocity2 += acc2;
+            velocity3 += acc3;
+
+            velocity1 *= damping;
+            velocity2 *= damping;
+            velocity3 *= damping;
+
+            angle1 += velocity1;
+            angle2 += velocity2;
+            angle3 += velocity3;
+
+            requestAnimationFrame(animate);
+        }
+
+        // Fonction de reset
+        function resetPendulum() {
+            angle1 = initialConfig.angle1;
+            angle2 = initialConfig.angle2;
+            angle3 = initialConfig.angle3;
+            velocity1 = initialConfig.velocity1;
+            velocity2 = initialConfig.velocity2;
+            velocity3 = initialConfig.velocity3;
+        }
+
+        // Ajout de l'écouteur d'événement pour le bouton
+        document.getElementById('resetButton').addEventListener('click', resetPendulum);
+
+        // Démarrer l'animation
+        animate();
+    </script>
+</body>
+</html>
